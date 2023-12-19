@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JSON Validation</title>
+    <style>
+      .btn-group button {
+        background-color: #ffffff;
+        border: 1px solid rgb(0, 0, 0);
+        color: black;
+        padding: 10px 24px;
+        cursor: pointer;
+        float: left;
+      }
+
+      /* Clear floats (clearfix hack) */
+      .btn-group:after {
+        content: "";
+        clear: both;
+        display: table;
+      }
+
+      .btn-group button:not(:last-child) {
+        border-right: none;
+      }
+
+      .btn-group .edit:hover {
+        background-color: #3e8e41;
+        color: #ffffff;
+      }
+      .btn-group .delete:hover {
+        background-color: #f40404;
+        color: #ffffff;
+      }
+
+      table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      td,
+      th {
+        border: 1px solid #dddddd;
+        text-align: center;
+        padding: 8px;
+      }
+
+      tr:nth-child(even) {
+        background-color: #dddddd;
+      }
+      #container {
+        display: flex;
+      }
+      #leftContainer {
+        flex: 1;
+        padding: 10px;
+      }
+      #rightContainer {
+        flex: 1;
+        padding: 10px;
+      }
+      .success {
+        background-color: green;
+        color: white;
+      }
+      .error {
+        background-color: red;
+        color: white;
+      }
+      #schemaContainer {
+        text-align: center;
+        padding: 10px;
+        border: 1px solid #ccc;
+        width: 100%;
+        overflow: auto;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>JSON Validator Engine</h1>
+    <div id="container">
+      <!-- Formulir JSON -->
+      <div id="leftContainer">
+        <form action="/validateAndSave" method="POST" id="jsonForm">
+          <label for="urlPath">URL Path:</label>
+          <input
+            type="text"
+            name="url_path"
+            id="urlPath"
+            placeholder="Enter URL Path"
+            style="margin-bottom: 10px"
+          />
+          <br />
+          <textarea
+            name="jsonData"
+            id="jsonData"
+            rows="10"
+            cols="75"
+            placeholder="Enter JSON string"
+          ></textarea>
+          <textarea
+            name="jsonSchema"
+            id="jsonSchema"
+            rows="10"
+            style="margin-top: 10px"
+            cols="75"
+            placeholder="Enter JSON Schema"
+          ></textarea>
+          <br />
+          <button
+            style="margin: 20px; padding: 10px"
+            type="button"
+            onclick="validateJSON()"
+          >
+            Validate JSON
+          </button>
+          <button
+            style="margin: 20px; padding: 10px"
+            type="button"
+            onclick="clearForm()"
+          >
+            CLEAR
+          </button>
+        </form>
+
+        <!-- Container untuk menampilkan JSON schema -->
+        <div id="schemaContainer">
+          <h2>Available JSON Schema</h2>
+          <table>
+            <tr>
+              <th>Name / URL</th>
+              <th>Action</th>
+            </tr>
+            <tr>
+              <td><a href="">Alfreds Futterkiste</a></td>
+              <td>
+                <div class="btn-group" style="width: 100%">
+                  <button class="edit">Edit</button>
+                  <button class="delete">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><a href="">Alfreds Futterkiste</a></td>
+              <td>
+                <div class="btn-group" style="width: 100%">
+                  <button class="edit">Edit</button>
+                  <button class="delete">Delete</button>
+                </div>
+              </td>
+            </tr>
+          </table>
+          <pre id="schema"></pre>
+        </div>
+      </div>
+
+      <!-- Container untuk menampilkan hasil respons -->
+      <div id="rightContainer">
+        <div id="resultContainer">
+          <h2>Hasil Respons:</h2>
+          <pre id="result"></pre>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Function to display JSON schema on page load
+      function displaySchema() {
+        const schemaContainer = document.getElementById("schema");
+        schemaContainer.textContent = "";
+      }
+
+      // Call the function to display JSON schema on page load
+      window.onload = displaySchema;
+
+      // Function to validate JSON
+      async function validateJSON() {
+        const urlPath = document.getElementById("urlPath").value;
+        const jsonData = document.getElementById("jsonData").value;
+        const jsonSchema = document.getElementById("jsonSchema").value;
+        console.log(jsonSchema);
+
+        try {
+          const response = await fetch("/validateAndSave", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              url_path: urlPath,
+              jsonData: jsonData,
+              jsonSchema: JSON.parse(jsonSchema),
+            }),
+          });
+
+          const result = await response.json();
+
+          const resultContainer = document.getElementById("result");
+          resultContainer.textContent = JSON.stringify(result, null, 2);
+
+          resultContainer.className = result.status ? "success" : "error";
+
+          const schemaContainer = document.getElementById("schema");
+          schemaContainer.textContent = JSON.stringify(jsonSchema, null, 2);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      function clearForm() {
+        const jsonDataInput = document.getElementById("jsonData");
+        const resultContainer = document.getElementById("result");
+        const schemaContainer = document.getElementById("schema");
+
+        jsonDataInput.value = "";
+        resultContainer.textContent = "";
+        resultContainer.className = "";
+        schemaContainer.textContent = "";
+      }
+    </script>
+  </body>
+</html>
